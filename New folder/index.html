@@ -5,32 +5,69 @@
 <title>Sonics DayZ Editor</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{background:#050505;color:#e6e6e6;font-family:Segoe UI,Tahoma;margin:0}
+body{background:#050505;color:#e6e6e6;font-family:Segoe UI,Tahoma;margin:0;padding:0}
 header{text-align:center;padding:30px;background:#000;border-bottom:2px solid #2f8f2f}
 h1{color:#6aff6a;text-shadow:0 0 15px #2f8f2f}
+.logo{width:180px;margin-bottom:10px}
 .container{max-width:1100px;margin:auto;padding:20px}
-textarea{width:100%;height:220px;background:#0d0d0d;color:#9aff9a;border:1px solid #2f8f2f;padding:10px;font-family:monospace}
-button{background:#2f8f2f;border:none;color:#fff;padding:10px 16px;margin:5px;border-radius:6px;cursor:pointer}
-button:hover{background:#44cc44}
+textarea{width:100%;height:220px;background:#0d0d0d;color:#9aff9a;border:1px solid #2f8f2f;padding:10px;font-family:monospace;margin-bottom:10px}
+button{background:#2f8f2f;border:none;color:#fff;padding:10px 16px;margin:5px;border-radius:6px;cursor:pointer;box-shadow:0 0 5px #1f5f1f}
+button:hover{background:#44cc44;box-shadow:0 0 10px #44cc44}
 .panel{border:1px solid #2f8f2f;padding:15px;margin-bottom:25px;background:rgba(0,0,0,0.6)}
+.status{margin-top:10px;font-weight:bold}
+.ok{color:#6aff6a}
+.err{color:#ff4c4c}
+footer{text-align:center;padding:15px;color:#666;font-size:0.85rem}
 </style>
 </head>
 <body>
 <header>
-<img src="logo.png" width="220"><h1>Sonics DayZ Editor</h1>
+<img src="logo.png" class="logo" alt="Zombie Sonic Logo">
+<h1>Sonics DayZ Editor</h1>
 <p>Apocalyptic XML Control Panel</p>
 </header>
 <div class="container">
 <div class="panel">
-<h2>types.xml</h2>
-<textarea id="types"></textarea>
-<button onclick="alert('Logic included in full version')">Nominal +1 to +5</button>
+<h2>types.xml Editor</h2>
+<textarea id="typesInput" placeholder="Paste types.xml here"></textarea>
+<div>
+<button onclick="modifyTypes(1)">Nominal +1</button>
+<button onclick="modifyTypes(2)">Nominal +2</button>
+<button onclick="modifyTypes(3)">Nominal +3</button>
+<button onclick="modifyTypes(4)">Nominal +4</button>
+<button onclick="modifyTypes(5)">Nominal +5</button>
+<button onclick="validateXML('typesInput','typesStatus')">Validate XML</button>
+</div>
+<div id="typesStatus" class="status"></div>
 </div>
 <div class="panel">
-<h2>events.xml</h2>
-<textarea id="events"></textarea>
-<button onclick="alert('Logic included in full version')">+1 / +5 / +10</button>
+<h2>events.xml Editor</h2>
+<textarea id="eventsInput" placeholder="Paste events.xml here"></textarea>
+<div>
+<button onclick="modifyEvents(1)">+1 All</button>
+<button onclick="modifyEvents(5)">+5 All</button>
+<button onclick="modifyEvents(10)">+10 All</button>
+<button onclick="validateXML('eventsInput','eventsStatus')">Validate XML</button>
+</div>
+<div id="eventsStatus" class="status"></div>
+</div>
+<div class="panel">
+<h2>JSON Validator</h2>
+<textarea id="jsonInput" placeholder="Paste JSON here"></textarea>
+<button onclick="validateJSON()">Validate JSON</button>
+<div id="jsonStatus" class="status"></div>
 </div>
 </div>
+<footer>
+Sonics DayZ Editor • Built for the apocalypse
+</footer>
+<script>
+function parseXML(text){const xml=new DOMParser().parseFromString(text,"application/xml");if(xml.getElementsByTagName("parsererror").length){throw new Error("Invalid XML");}return xml;}
+function serializeXML(xml){return new XMLSerializer().serializeToString(xml);}
+function modifyTypes(amount){try{const input=document.getElementById("typesInput");const xml=parseXML(input.value);const types=xml.querySelectorAll("type");types.forEach(type=>{const nominal=type.querySelector("nominal");if(nominal)nominal.textContent=parseInt(nominal.textContent)+amount;let cim=type.querySelector("count_in_map");if(!cim){cim=xml.createElement("count_in_map");cim.textContent="1";type.appendChild(cim);}else if(cim.textContent==="0"){cim.textContent="1";}});input.value=serializeXML(xml);document.getElementById("typesStatus").textContent="✔ types.xml updated";document.getElementById("typesStatus").className="status ok";}catch(e){document.getElementById("typesStatus").textContent="❌ "+e.message;document.getElementById("typesStatus").className="status err";}}
+function modifyEvents(amount){try{const input=document.getElementById("eventsInput");const xml=parseXML(input.value);const events=xml.querySelectorAll("event");events.forEach(ev=>{["nominal","min","max"].forEach(tag=>{const el=ev.querySelector(tag);if(el)el.textContent=parseInt(el.textContent)+amount;});});input.value=serializeXML(xml);document.getElementById("eventsStatus").textContent="✔ events.xml updated";document.getElementById("eventsStatus").className="status ok";}catch(e){document.getElementById("eventsStatus").textContent="❌ "+e.message;document.getElementById("eventsStatus").className="status err";}}
+function validateXML(inputId,statusId){try{parseXML(document.getElementById(inputId).value);document.getElementById(statusId).textContent="✔ XML is valid";document.getElementById(statusId).className="status ok";}catch(e){document.getElementById(statusId).textContent="❌ "+e.message;document.getElementById(statusId).className="status err";}}
+function validateJSON(){try{JSON.parse(document.getElementById("jsonInput").value);document.getElementById("jsonStatus").textContent="✔ JSON is valid";document.getElementById("jsonStatus").className="status ok";}catch(e){document.getElementById("jsonStatus").textContent="❌ "+e.message;document.getElementById("jsonStatus").className="status err";}}
+</script>
 </body>
 </html>
